@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>商品详情</title>
+<style>
+body{margin:0;background:#f3f4f6;font-family:Arial,"Microsoft YaHei",sans-serif}
+.top{background:#4f46e5;color:white;padding:20px;text-align:center;font-size:24px;font-weight:bold}
+.box{max-width:1100px;margin:30px auto;padding:0 20px}
+.detail{background:white;border-radius:12px;padding:30px;display:flex;gap:40px;box-shadow:0 4px 12px rgba(0,0,0,.1)}
+.photo{width:45%;display:flex;align-items:center;justify-content:center;background:#fafafa;border-radius:10px;min-height:400px}
+.photo img{max-width:100%;max-height:400px;object-fit:contain}
+.info{flex:1}
+.name{font-size:28px;font-weight:bold;margin-bottom:25px}
+.price{font-size:30px;color:#e11d48;font-weight:bold;margin-bottom:20px}
+.item{font-size:18px;color:#555;margin:15px 0}
+.desc{margin-top:30px;background:white;border-radius:12px;padding:30px;box-shadow:0 4px 12px rgba(0,0,0,.1)}
+.desc h2{margin-top:0}
+.desc-content{font-size:16px;line-height:1.8;color:#444}
+.back{display:inline-block;margin-top:20px;background:#4f46e5;color:white;padding:12px 25px;border-radius:8px;text-decoration:none}
+.empty{text-align:center;background:white;padding:50px;border-radius:12px;font-size:20px}
+</style>
+</head>
+
+<body>
+
+<div class="top">商品详情</div>
+
+<div class="box">
+    <div id="content"></div>
+    <a class="back" href="javascript:history.back()">← 返回商品列表</a>
+</div>
+
+<script>
+let params=new URLSearchParams(window.location.search);
+let id=params.get("id");
+
+if(!id){
+    document.getElementById("content").innerHTML=
+        "<div class='empty'>商品编号不存在</div>";
+}else{
+    fetch("/goodsdata?id="+encodeURIComponent(id))
+    .then(response=>{
+        if(!response.ok){
+            throw new Error("HTTP错误："+response.status);
+        }
+        return response.json();
+    })
+    .then(goods=>{
+        if(!goods.id){
+            document.getElementById("content").innerHTML=
+                "<div class='empty'>没有找到该商品</div>";
+            return;
+        }
+
+        let img=goods.img
+            ? "<img src='/"+goods.img+"'>"
+            : "<div>暂无图片</div>";
+
+        let desc=goods.desc
+            ? goods.desc
+            : "暂无商品描述";
+
+        document.getElementById("content").innerHTML=
+            "<div class='detail'>"+
+                "<div class='photo'>"+img+"</div>"+
+                "<div class='info'>"+
+                    "<div class='name'>"+goods.name+"</div>"+
+                    "<div class='price'>￥"+Number(goods.price).toFixed(2)+"</div>"+
+                    "<div class='item'>商品编号："+goods.id+"</div>"+
+                    "<div class='item'>库存："+goods.stock+"</div>"+
+                    "<div class='item'>商品货号："+goods.sn+"</div>"+
+                "</div>"+
+            "</div>"+
+            "<div class='desc'>"+
+                "<h2>商品描述</h2>"+
+                "<div class='desc-content'>"+desc+"</div>"+
+            "</div>";
+    })
+    .catch(error=>{
+        console.log("商品加载失败：",error);
+        document.getElementById("content").innerHTML=
+            "<div class='empty'>商品信息加载失败</div>";
+    });
+}
+</script>
+
+</body>
+</html>

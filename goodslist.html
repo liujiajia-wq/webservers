@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>商品搜索结果</title>
+<style>
+body{margin:0;background:#f3f4f6;font-family:Arial,"Microsoft YaHei",sans-serif}
+.top{background:#4f46e5;color:white;padding:20px;text-align:center;font-size:24px;font-weight:bold}
+.box{max-width:1200px;margin:30px auto;padding:0 20px}
+.result{margin-bottom:20px;color:#555;font-size:18px}
+.list{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
+.card{background:white;border-radius:12px;padding:15px;box-shadow:0 4px 12px rgba(0,0,0,.1)}
+.card img{width:100%;height:180px;object-fit:contain;background:#fafafa}
+.name{font-size:17px;font-weight:bold;margin:12px 0;height:45px}
+.price{color:#e11d48;font-size:21px;font-weight:bold}
+.stock{color:#666;margin:8px 0}
+.btn{display:block;text-align:center;background:#4f46e5;color:white;padding:10px;border-radius:8px;text-decoration:none;margin-top:10px}
+.empty{text-align:center;background:white;padding:50px;border-radius:12px;font-size:20px}
+</style>
+</head>
+<body>
+
+<div class="top">商品搜索结果</div>
+
+<div class="box">
+    <div class="result">搜索关键词：<span id="keyword"></span></div>
+    <div class="list" id="goodsList"></div>
+</div>
+
+<script>
+let params=new URLSearchParams(window.location.search);
+let key=params.get("key")||"";
+document.getElementById("keyword").innerText=key;
+
+fetch("/doserarch?key="+encodeURIComponent(key))
+.then(response=>response.json())
+.then(data=>{
+    let list=document.getElementById("goodsList");
+
+    if(data.length===0){
+        list.innerHTML="<div class='empty'>没有找到相关商品</div>";
+        return;
+    }
+
+    data.forEach(goods=>{
+        let img=goods.img
+            ? "<img src='/"+goods.img+"'>"
+            : "<div style='height:180px;display:flex;align-items:center;justify-content:center;background:#eee;color:#999;'>暂无图片</div>";
+
+        list.innerHTML+=
+            "<div class='card'>"+
+            img+
+            "<div class='name'>"+goods.name+"</div>"+
+            "<div class='price'>￥"+goods.price.toFixed(2)+"</div>"+
+            "<div class='stock'>库存："+goods.stock+"</div>"+
+            "<a class='btn' href='/goods?id="+goods.id+"'>查看详情</a>"+
+            "</div>";
+    });
+})
+.catch(error=>{
+    console.log(error);
+    document.getElementById("goodsList").innerHTML=
+        "<div class='empty'>搜索失败</div>";
+});
+</script>
+
+</body>
+</html>
